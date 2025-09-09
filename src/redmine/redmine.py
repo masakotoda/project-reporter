@@ -17,7 +17,7 @@ class RedmineInstance:
         projects = self.fetchAllProject()
         for prj in projects:
             print(f'Fetching {prj.key}...')
-            #self.fetchAllTickets(prj.key)
+            self.fetchAllTickets(prj.key)
 
     def getResponse(self, urlpath, params):
         baseurl = utils.loadConfig(self.config_folder / utils.baseurl_filename())
@@ -57,24 +57,23 @@ class RedmineInstance:
 
 
     def fetchAllTickets(self, project_key):
-        jql_query = f"project = {project_key} AND issuetype != Epic"
-        params = {
-            "jql": jql_query,
-            "maxResults": 500,  # adjust as needed
-            "fields": ["summary", "issuetype", "status"]
-        }
-        urlpath = f"rest/api/latest/search"
-        response = self.getResponse(urlpath, params);
+        urlpath = "issues.json?offset=0&limit=100&project_id=" + project_key
+        response = self.getResponse(urlpath, {})
 
         if utils.checkError(response, urlpath) == False:
             return {}
+
+        # utils.dumpJson(response.text)
+
         if response.status_code == 200:
             issues = response.json().get("issues", [])
             for issue in issues:
-                key = issue["key"]
-                summary = issue["fields"]["summary"]
-                issue_type = issue["fields"]["issuetype"]["name"]
-                status = issue["fields"]["status"]["name"]
+                key = issue["id"]
+                summary = issue["subject"]
+                issue_type = issue["tracker"]["name"]
+                status = issue["status"]["name"]
+                due_date = issue["due_date"]
+                estimated_hours = issue["estimated_hours"]
                 print(f"- {key}: [{issue_type}] {summary} (Status: {status})")
             return {}
         else:

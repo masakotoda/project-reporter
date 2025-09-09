@@ -14,6 +14,10 @@ class BacklogInstance:
         self.config_folder = Path(config_folder)
 
     def run(self):
+        projects = self.fetchAllProject()
+        #for prj in projects:
+        #    print(f'Fetching {prj.key}...')
+        #    self.fetchAllTickets(prj.key)
         self.fetchMyself()
  
     def getResponse(self, urlpath, params):
@@ -34,7 +38,26 @@ class BacklogInstance:
             return []
 
         utils.dumpJson(response.text)
+        return []
 
+    def fetchAllProject(self):
+        urlpath = "api/v2/projects"
+        response = self.getResponse(urlpath, {})
+
+        if utils.checkError(response, urlpath) == False:
+            return []
+
+        utils.dumpJson(response.text)
+
+        obj = json.loads(response.text)
+
+        items = obj
+
+        projects = []
+        for item in items:
+            project = utils.Project(item['projectKey'], item['name'], '', '')
+            projects.append(project)
+        return projects
 
 class BacklogManager:
     def __init__(self):
