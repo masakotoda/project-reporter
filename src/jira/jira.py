@@ -14,15 +14,15 @@ class JiraInstance:
         self.config_folder = Path(config_folder)
 
     def run(self):
-        projects = self.fetchAllProject()
-        for prj in projects:
+        self.projects = self.fetchAllProject()
+        for prj in self.projects:
             print(f'Fetching {prj.key}...')
-            self.fetchAllTickets(prj.key)
+            prj.addTickets(self.fetchAllTickets(prj.key))
 
     def getResponse(self, urlpath, params):
-        baseurl = utils.loadConfig(self.config_folder / utils.baseurl_filename())
-        email = utils.loadConfig(self.config_folder / utils.email_filename())
-        token = utils.loadConfig(self.config_folder / utils.token_filename()) 
+        baseurl = utils.loadText(self.config_folder / utils.baseurl_filename())
+        email = utils.loadText(self.config_folder / utils.email_filename())
+        token = utils.loadText(self.config_folder / utils.token_filename())
 
         headers = { "Accept": "application/json" }
         auth = HTTPBasicAuth(email, token)
@@ -60,21 +60,25 @@ class JiraInstance:
         response = self.getResponse(urlpath, params);
 
         if utils.checkError(response, urlpath) == False:
-            return {}
+            return []
         if response.status_code == 200:
             issues = response.json().get("issues", [])
+            tickets = []
             for issue in issues:
                 key = issue["key"]
                 summary = issue["fields"]["summary"]
                 issue_type = issue["fields"]["issuetype"]["name"]
                 status = issue["fields"]["status"]["name"]
-                print(f"- {key}: [{issue_type}] {summary} (Status: {status})")
-            return {}
+                ticket = utils.Ticket(key, summary, issue_type, status, '', '')
+                tickets.append(ticket)
+                #print(f"- {key}: [{issue_type}] {summary} (Status: {status})")
+            return tickets
         else:
-            return {}
+            return []
         
 class JiraManager:
     def __init__(self):
+        self.name = "jira"
         self.instances = []
         folders = utils.listConfigFolders(Path(__file__).resolve().parent)
         for folder in folders:

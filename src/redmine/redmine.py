@@ -14,14 +14,14 @@ class RedmineInstance:
         self.config_folder = Path(config_folder)
 
     def run(self):
-        projects = self.fetchAllProject()
-        for prj in projects:
+        self.projects = self.fetchAllProject()
+        for prj in self.projects:
             print(f'Fetching {prj.key}...')
             self.fetchAllTickets(prj.key)
 
     def getResponse(self, urlpath, params):
-        baseurl = utils.loadConfig(self.config_folder / utils.baseurl_filename())
-        token = utils.loadConfig(self.config_folder / utils.token_filename()) 
+        baseurl = utils.loadText(self.config_folder / utils.baseurl_filename())
+        token = utils.loadText(self.config_folder / utils.token_filename())
 
         #auth = HTTPBasicAuth(email, token)
         headers = { 'Accept': 'application/json', 'X-Redmine-API-Key': token }
@@ -81,6 +81,7 @@ class RedmineInstance:
     
 class RedmineManager:
     def __init__(self):
+        self.name = "redmine"
         self.instances = []
         folders = utils.listConfigFolders(Path(__file__).resolve().parent)
         for folder in folders:

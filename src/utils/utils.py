@@ -9,7 +9,7 @@ def initLog():
 def dumpJson(json_str):
     print(json.dumps(json.loads(json_str), sort_keys=True, indent=4, separators=(',', ': ')))
 
-def loadConfig(filename):
+def loadText(filename):
     with open(filename, 'r', encoding='utf-8') as file:
         text = file.read()
     return text.strip()
@@ -79,10 +79,23 @@ def createConfigFolder(base_path):
         else:
             return new_dir
         
+class Ticket:
+    def __init__(self, key, summary, issue_type, status, due_date, estimated_hours):
+        self.key = key
+        self.summary = summary
+        self.issue_type = issue_type
+        self.status = status
+        self.due_date = due_date
+        self.estimated_hours = estimated_hours
+
 class Project:
     def __init__(self, key, name, type, url):
         self.key = key
         self.name = name
         self.type = type
         self.url = url
+        self.tickets = []
+
+    def addTickets(self, tickets):
+        self.tickets.append(tickets)
 
