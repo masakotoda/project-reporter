@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import requests
+import re
 import sys
 from pathlib import Path
 from requests.auth import HTTPBasicAuth
@@ -19,8 +20,11 @@ class JiraInstance:
             print(f'Fetching {prj.key}...')
             prj.addTickets(self.fetchAllTickets(prj.key))
 
+    def baseUrl(self):
+        return utils.loadText(self.config_folder / utils.baseurl_filename())
+
     def getResponse(self, urlpath, params):
-        baseurl = utils.loadText(self.config_folder / utils.baseurl_filename())
+        baseurl = self.baseUrl()
         email = utils.loadText(self.config_folder / utils.email_filename())
         token = utils.loadText(self.config_folder / utils.token_filename())
 
@@ -38,13 +42,17 @@ class JiraInstance:
         if utils.checkError(response, urlpath) == False:
             return []
 
-        # dumpJson(response.text)
+        # utils.dumpJson(response.text)
 
         items = json.loads(response.text)
 
         projects = []
         for item in items:
-            project = utils.Project(item['key'], item['name'], item["projectTypeKey"], item['self'])
+            project_type_key = item["projectTypeKey"]
+            project = utils.Project(item['key'], item['name'], project_type_key, item['self'])
+            #project.url = item['self'].replace('/rest/api/latest/project/', '/projects/')
+            pattern = r'/rest/api/(latest|\d+)/project/'
+            project.url = re.sub(pattern, '/projects/', item['self'])
             projects.append(project)
         return projects
 

@@ -19,8 +19,11 @@ class RedmineInstance:
             print(f'Fetching {prj.key}...')
             self.fetchAllTickets(prj.key)
 
+    def baseUrl(self):
+        return utils.loadText(self.config_folder / utils.baseurl_filename())
+
     def getResponse(self, urlpath, params):
-        baseurl = utils.loadText(self.config_folder / utils.baseurl_filename())
+        baseurl = self.baseUrl()
         token = utils.loadText(self.config_folder / utils.token_filename())
 
         #auth = HTTPBasicAuth(email, token)
@@ -38,7 +41,7 @@ class RedmineInstance:
         if utils.checkError(response, urlpath) == False:
             return []
 
-        # utils.dumpJson(response.text)
+        utils.dumpJson(response.text)
 
         obj = json.loads(response.text)
         total_count = obj.get('total_count', 0)
@@ -52,6 +55,7 @@ class RedmineInstance:
         projects = []
         for item in items:
             project = utils.Project(item['identifier'], item['name'], '', '')
+            project.url = f'https://{self.baseUrl()}/projects/{item["identifier"]}'
             projects.append(project)
         return projects
 

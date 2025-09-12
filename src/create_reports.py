@@ -3,6 +3,8 @@ import logging
 import os
 import requests
 import sys
+import webbrowser
+from datetime import datetime
 from pathlib import Path
 from requests.auth import HTTPBasicAuth
 
@@ -27,20 +29,24 @@ class Controller:
 
     def run(self):
         head_file = Path(__file__).resolve().parent.parent / 'html' / 'sample_head.html'
-        content = utils.loadText(head_file)
+        content = utils.loadText(head_file, False)
 
         managers = [jira.JiraManager(), redmine.RedmineManager(), backlog.BacklogManager()]
         for manager in managers:
             manager.run()
             for instance in manager.instances:
                 for prj in instance.projects:
-                    content += f'<tr><td>{manager.name}</td><td>{prj.name}</td><td>{len(prj.tickets)} tickets</td></tr>\n'
+                    content += f'<tr><td>{manager.name}</td><td><a href="{prj.url}">{prj.name}</a></td><td>{len(prj.tickets)} tickets</td></tr>\n'
 
         tail_file = Path(__file__).resolve().parent.parent / 'html' / 'sample_tail.html'
-        content += utils.loadText(tail_file)
+        content += utils.loadText(tail_file, False)
 
-        report_file = Path(__file__).resolve().parent.parent / 'html' / 'report.html'
+
+        now = datetime.now()
+        report_file = Path(__file__).resolve().parent.parent / 'html' / f'report-{now.strftime("%Y-%m-%d=%H-%M-%S")}.html'
         utils.saveText(report_file, content)
+
+        webbrowser.open(f"file://{report_file}")
         return
 
 

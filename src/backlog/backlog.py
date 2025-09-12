@@ -19,9 +19,12 @@ class BacklogInstance:
         #    print(f'Fetching {prj.key}...')
         #    self.fetchAllTickets(prj.key)
         self.fetchMyself()
+
+    def baseUrl(self):
+        return utils.loadText(self.config_folder / utils.baseurl_filename())
  
     def getResponse(self, urlpath, params):
-        baseurl = utils.loadText(self.config_folder / utils.baseurl_filename())
+        baseurl = self.baseUrl()
         token = utils.loadText(self.config_folder / utils.token_filename())
 
         headers = { "Accept": "application/json" }
@@ -37,7 +40,7 @@ class BacklogInstance:
         if utils.checkError(response, urlpath) == False:
             return []
 
-        utils.dumpJson(response.text)
+        #utils.dumpJson(response.text)
         return []
 
     def fetchAllProject(self):
@@ -47,7 +50,7 @@ class BacklogInstance:
         if utils.checkError(response, urlpath) == False:
             return []
 
-        utils.dumpJson(response.text)
+        #utils.dumpJson(response.text)
 
         obj = json.loads(response.text)
 
@@ -55,7 +58,9 @@ class BacklogInstance:
 
         projects = []
         for item in items:
-            project = utils.Project(item['projectKey'], item['name'], '', '')
+            project_key = item['projectKey']
+            project = utils.Project(project_key, item['name'], '', '')
+            project.url = f'https://{self.baseUrl()}/projects/{project_key}'
             projects.append(project)
         return projects
 

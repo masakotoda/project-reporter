@@ -9,7 +9,7 @@ def initLog():
 def dumpJson(json_str):
     print(json.dumps(json.loads(json_str), sort_keys=True, indent=4, separators=(',', ': ')))
 
-def loadText(filename):
+def loadText(filename, strip=True):
     with open(filename, 'r', encoding='utf-8') as file:
         text = file.read()
     return text.strip()
