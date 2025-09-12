@@ -26,7 +26,7 @@ class Controller:
         return
 
     def run(self):
-        head_file = Path(__file__).resolve().parent.parent / 'html' / 'sample.html'
+        head_file = Path(__file__).resolve().parent.parent / 'html' / 'sample_head.html'
         content = utils.loadText(head_file)
 
         managers = [jira.JiraManager(), redmine.RedmineManager(), backlog.BacklogManager()]
