@@ -95,7 +95,8 @@ class Project:
         self.type = type
         self.url = url
         self.tickets = []
+        self.id = 0
 
     def addTickets(self, tickets):
-        self.tickets.append(tickets)
+        self.tickets += tickets
 

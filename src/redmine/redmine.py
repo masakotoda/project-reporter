@@ -17,7 +17,7 @@ class RedmineInstance:
         self.projects = self.fetchAllProject()
         for prj in self.projects:
             print(f'Fetching {prj.key}...')
-            self.fetchAllTickets(prj.key)
+            prj.addTickets(self.fetchAllTickets(prj.key))
 
     def baseUrl(self):
         return utils.loadText(self.config_folder / utils.baseurl_filename())
@@ -65,12 +65,13 @@ class RedmineInstance:
         response = self.getResponse(urlpath, {})
 
         if utils.checkError(response, urlpath) == False:
-            return {}
+            return []
 
         # utils.dumpJson(response.text)
 
         if response.status_code == 200:
             issues = response.json().get("issues", [])
+            tickets = []
             for issue in issues:
                 key = issue["id"]
                 summary = issue["subject"]
@@ -78,10 +79,12 @@ class RedmineInstance:
                 status = issue["status"]["name"]
                 due_date = issue["due_date"]
                 estimated_hours = issue["estimated_hours"]
-                print(f"- {key}: [{issue_type}] {summary} (Status: {status})")
-            return {}
+                # print(f"- {key}: [{issue_type}] {summary} (Status: {status})")
+                ticket = utils.Ticket(key, summary, issue_type, status, due_date, estimated_hours)
+                tickets.append(ticket)
+            return tickets
         else:
-            return {}
+            return []
     
 class RedmineManager:
     def __init__(self):

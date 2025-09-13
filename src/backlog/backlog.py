@@ -15,10 +15,9 @@ class BacklogInstance:
 
     def run(self):
         self.projects = self.fetchAllProject()
-        #for prj in projects:
-        #    print(f'Fetching {prj.key}...')
-        #    self.fetchAllTickets(prj.key)
-        self.fetchMyself()
+        for prj in self.projects:
+            print(f'Fetching {prj.key}...')
+            prj.addTickets(self.fetchAllTickets(prj.id))
 
     def baseUrl(self):
         return utils.loadText(self.config_folder / utils.baseurl_filename())
@@ -28,7 +27,8 @@ class BacklogInstance:
         token = utils.loadText(self.config_folder / utils.token_filename())
 
         headers = { "Accept": "application/json" }
-        url = f"https://{baseurl}/{urlpath}?apiKey={token}"
+        params["apiKey"] = token
+        url = f"https://{baseurl}/{urlpath}"
 
         response = requests.request("GET", url, headers=headers, params=params)
         return response
@@ -50,7 +50,7 @@ class BacklogInstance:
         if utils.checkError(response, urlpath) == False:
             return []
 
-        #utils.dumpJson(response.text)
+        utils.dumpJson(response.text)
 
         obj = json.loads(response.text)
 
@@ -60,9 +60,40 @@ class BacklogInstance:
         for item in items:
             project_key = item['projectKey']
             project = utils.Project(project_key, item['name'], '', '')
+            project.id= item['id']
             project.url = f'https://{self.baseUrl()}/projects/{project_key}'
             projects.append(project)
         return projects
+
+    def fetchAllTickets(self, project_id):
+        urlpath = "api/v2/issues"
+        params = {
+            "count": 100,  # adjust as needed
+            "projectId[]": project_id
+        }
+        response = self.getResponse(urlpath, params)
+
+        if utils.checkError(response, urlpath) == False:
+            return []
+
+        utils.dumpJson(response.text)
+
+        if response.status_code == 200:
+            issues = json.loads(response.text)
+            tickets = []
+            for issue in issues:
+                key = issue["issueKey"]
+                summary = issue["summary"]
+                issue_type = issue["issueType"]["name"]
+                status = issue["status"]["name"]
+                due_date = issue["dueDate"]
+                estimated_hours = issue["estimatedHours"]
+                # print(f"- {key}: [{issue_type}] {summary} (Status: {status})")
+                ticket = utils.Ticket(key, summary, issue_type, status, due_date, estimated_hours)
+                tickets.append(ticket)
+            return tickets
+        else:
+            return []
 
 class BacklogManager:
     def __init__(self):

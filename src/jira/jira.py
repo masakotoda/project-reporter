@@ -77,7 +77,7 @@ class JiraInstance:
                 summary = issue["fields"]["summary"]
                 issue_type = issue["fields"]["issuetype"]["name"]
                 status = issue["fields"]["status"]["name"]
-                ticket = utils.Ticket(key, summary, issue_type, status, '', '')
+                ticket = utils.Ticket(key, summary, issue_type, status, None, None)
                 tickets.append(ticket)
                 #print(f"- {key}: [{issue_type}] {summary} (Status: {status})")
             return tickets
